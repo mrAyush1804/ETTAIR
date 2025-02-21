@@ -1,0 +1,68 @@
+name: Next.js Build, Test, Report & Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Code Checkout
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Step 2: Node.js Setup
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # Step 3: Dependencies Install
+    - name: Install Dependencies
+      run: npm install
+
+    # Step 4: Build Next.js App
+    - name: Build App
+      run: npm run build
+
+    # Step 5: Run Tests (Assuming you have tests)
+    - name: Run Tests
+      run: npm test
+      continue-on-error: true # Agar test fail bhi ho to aage badhe
+
+    # Step 6: Generate Test Report (Using Jest as example)
+    - name: Generate Test Report
+      if: always() # Hamesha chalega, chahe test fail ho ya pass
+      run: |
+        npm test -- --json --outputFile=test-report.json || true
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-report
+        path: test-report.json
+
+    # Step 7: Send Email with Report
+    - name: Send Email Notification
+      if: always()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "Next.js Build & Test Report - ${{ github.event_name }}"
+        body: "Build aur Test complete ho gaya! Check attachment for report."
+        to: your-email@example.com # Apna email daal do
+        from: ${{ secrets.EMAIL_USERNAME }}
+        attachments: test-report.json
+
+    # Step 8: Deploy to Netlify
+    - name: Deploy to Netlify
+      run: npx netlify-cli deploy --prod
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
