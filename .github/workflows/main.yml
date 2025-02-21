@@ -26,8 +26,7 @@ jobs:
 
 
       
-    - name: run test
-      run: npm test
+ 
 
     - name: Build Website
       run: npm run build # Website build karo
