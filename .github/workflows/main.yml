@@ -1,42 +1,42 @@
-name: Build, Test, Report aur Deploy
+name: Website Build aur Test
 
 on:
   push:
     branches:
-      - main # Jab main branch pe push ho, yeh chale
+      - main # Jab main pe push ho
+  pull_request: # PR pe bhi chale
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest # Linux machine pe chale
+  build:
+   runs-on: ubuntu-latest
 
-    steps:
-      # Code checkout karo
-      - name: Checkout Code
-        uses: actions/checkout@v3
+   steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4 
 
-      # Node.js setup karo
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18" # Node version
 
-      # Dependencies install karo
-      - name: Install Dependencies
-        run: npm install
+    - name: Setup node
+      uses: actions/setup-node@v3
+      with:
+         node-version: '18'
 
-      # Report banao
-      - name: Generate Test Report
-        run: npm run report
+      
+    - name: Setup dependdency
+      run: npm install
 
-      # Email bhejo
-      - name: Send Report Email
-        env:
-          EMAIL_USER: ${{ secrets.EMAIL_USER }} # GitHub Secrets mein daalo
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }} # GitHub Secrets mein daalo
-        run: npm run send-report
 
-      # Build aur Deploy (Vercel example)
-      - name: Deploy to Vercel
-        run: npx vercel --prod
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }} # Vercel token secret mein
+      
+    - name: run test
+      run: npm test
+
+    - name: Build Website
+      run: npm run build # Website build karo
+      
+    - name: Upload Build
+      uses: actions/upload-artifact@v4 # Build upload karo
+      with:
+          name: website-build
+          path: dist/ # Build folder upload karo 
+         
+      
+      
